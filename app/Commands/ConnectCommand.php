@@ -42,10 +42,15 @@ class ConnectCommand extends Command
                         if (is_string($requestId) && $requestId !== '') {
                             $this->info("Proxy requested for requestId: {$requestId}");
 
-                            connect("ws://127.0.0.1:8082")->then(function (WebSocket $conn) use ($requestId) {
+                            connect("ws://127.0.0.1:8082")->then(function (WebSocket $proxyConn) use ($requestId) {
                                 $this->info("Proxy connected for requestId: {$requestId}");
 
-                                $conn->send(json_encode([
+                                $proxyConn->on('message', function ($msg) use ($requestId) {
+                                    $this->info("Proxy received payload for {$requestId}:");
+                                    $this->line((string)$msg);
+                                });
+
+                                $proxyConn->send(json_encode([
                                     'event' => 'registerProxy',
                                     'data' => [
                                         'requestId' => $requestId,
