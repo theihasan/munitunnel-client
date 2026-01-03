@@ -17,28 +17,33 @@ class ConnectCommand extends Command
         $url = (string) $this->option('url');
         $this->info('Connecting to ' . $url);
 
-        connect($url)->then(function (WebSocket $conn) {
-            $this->info("Connected!\n");
-            $conn->send(json_encode([
-                'event' => 'ping',
-            ]));
+        connect($url)->then(
+            function (WebSocket $conn) {
+                $this->info("Connected!\n");
 
-            $conn->on('message', function ($msg) use ($conn) {
-                $this->info("Received: {$msg}\n");
-                $conn->close();
-            });
+                $conn->send(json_encode([
+                    'event' => 'register',
+                    'data' => [
+                        "subdomain" => "abc"
+                    ],
+                ]));
 
-            $conn->on('close', function ($code) use ($conn) {
-                $this->info("Connection closed ({$code})\n");
+                $conn->on('message', function ($msg) use ($conn) {
+                    $this->info("Received: {$msg}\n");
+                    $conn->close();
+                });
+
+                $conn->on('close', function ($code) {
+                    $this->info("Connection closed ({$code})\n");
+                    Loop::stop();
+                });
+            },
+            function (\Exception $e) {
+                $this->error("Connection error: " . $e->getMessage());
                 Loop::stop();
-            });
+            }
+        );
 
-        });
-
-        function(\Exception $e) {
-            $this->info("An error occurred: {$e->getMessage()}\n");
-            Loop::stop();
-        };
 
         Loop::run();
         return 0;
