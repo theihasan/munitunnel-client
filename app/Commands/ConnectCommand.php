@@ -29,8 +29,33 @@ class ConnectCommand extends Command
                 ]));
 
                 $conn->on('message', function ($msg) {
+                    $data = json_decode((string)$msg, true);
+                    if (!is_array($data)) {
+                        return;
+                    }
+
                     $this->info("Received control message:");
                     $this->line((string)$msg);
+
+                    if ($data['event'] ?? null === 'createProxy') {
+                        $requestId = $data['data']['requestId'] ?? null;
+                        if (is_string($requestId) && $requestId !== '') {
+                            $this->info("Proxy requested for requestId: {$requestId}");
+
+                            connect("ws://127.0.0.1:8082")->then(function (WebSocket $conn) use ($requestId) {
+                                $this->info("Proxy connected for requestId: {$requestId}");
+
+                                $conn->send(json_encode([
+                                    'event' => 'registerProxy',
+                                    'data' => [
+                                        'requestId' => $requestId,
+                                    ],
+                                ]));
+
+                                $this->info("Proxy registered for requestId: {$requestId}");
+                            });
+                        }
+                    }
                 });
 
             },
