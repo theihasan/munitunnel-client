@@ -28,8 +28,9 @@ class ConnectCommand extends Command
                     ],
                 ]));
 
-                $conn->on('message', function ($msg) use ($conn) {
-                    $this->info("Received: {$msg}\n");
+                $conn->on('message', function ($msg) {
+                    $this->info("Received control message:");
+                    $this->line((string)$msg);
                 });
 
             },
