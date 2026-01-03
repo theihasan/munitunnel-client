@@ -30,13 +30,8 @@ class ConnectCommand extends Command
 
                 $conn->on('message', function ($msg) use ($conn) {
                     $this->info("Received: {$msg}\n");
-                    $conn->close();
                 });
 
-                $conn->on('close', function ($code) {
-                    $this->info("Connection closed ({$code})\n");
-                    Loop::stop();
-                });
             },
             function (\Exception $e) {
                 $this->error("Connection error: " . $e->getMessage());
