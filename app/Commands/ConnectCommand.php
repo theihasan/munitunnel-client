@@ -45,20 +45,38 @@ class ConnectCommand extends Command
                             connect("ws://127.0.0.1:8082")->then(function (WebSocket $proxyConn) use ($requestId) {
                                 $this->info("Proxy connected for requestId: {$requestId}");
 
-                                $proxyConn->on('message', function ($msg) use ($requestId) {
+                                $proxyConn->on('message', function ($msg) use ($requestId, $proxyConn) {
+                                    $payload = json_decode((string)$msg, true);
+
                                     $this->info("Proxy received payload for {$requestId}:");
                                     $this->line((string)$msg);
+
+                                    if (!is_array($payload)) return;
+
+                                    if (($payload['event'] ?? null) === 'httpRequest') {
+                                        $path = $payload['data']['path'] ?? '/';
+
+                                        $proxyConn->send(json_encode([
+                                            'event' => 'httpResponse',
+                                            'data' => [
+                                                'requestId' => $requestId,
+                                                'status' => 200,
+                                                'body' => "Hello from client! path={$path}",
+                                            ],
+                                        ]));
+
+                                        $this->info("Sent httpResponse for {$requestId}");
+                                    }
                                 });
 
                                 $proxyConn->send(json_encode([
                                     'event' => 'registerProxy',
-                                    'data' => [
-                                        'requestId' => $requestId,
-                                    ],
+                                    'data' => ['requestId' => $requestId],
                                 ]));
 
                                 $this->info("Proxy registered for requestId: {$requestId}");
                             });
+
                         }
                     }
                 });
