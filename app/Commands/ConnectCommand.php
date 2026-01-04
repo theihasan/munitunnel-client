@@ -54,14 +54,19 @@ class ConnectCommand extends Command
                                     if (!is_array($payload)) return;
 
                                     if (($payload['event'] ?? null) === 'httpRequest') {
+                                        $method = strtoupper((string) ($payload['data']['method'] ?? 'GET'));
                                         $path = $payload['data']['path'] ?? '/';
+                                        $query = $payload['data']['query'] ?? '';
+                                        $body = $payload['data']['body'] ?? '';
+                                        $fullPath = $query !== '' ? "{$path}?{$query}" : $path;
+                                        $bodyLength = is_string($body) ? strlen($body) : 0;
 
                                         $proxyConn->send(json_encode([
                                             'event' => 'httpResponse',
                                             'data' => [
                                                 'requestId' => $requestId,
                                                 'status' => 200,
-                                                'body' => "Hello from client! path={$path}",
+                                                'body' => "Hello from client! method={$method} path={$fullPath} body_len={$bodyLength}",
                                             ],
                                         ]));
 
