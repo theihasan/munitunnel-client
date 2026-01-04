@@ -69,8 +69,8 @@ Connect to a hosted server (TLS + token):
 The subdomain you register must match a wildcard DNS record pointed at the
 server (for example `*.example.com`).
 
-If the server runs in per-subdomain auth mode, you must pass the matching token
-with `--token` or set `MUNITUNNEL_AUTH_TOKEN`.
+If the server runs in shared-token mode, you must pass the token with `--token`
+or set `MUNITUNNEL_AUTH_TOKEN`.
 
 You can also set defaults via environment variables:
 ```bash
